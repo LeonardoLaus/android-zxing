@@ -1,0 +1,97 @@
+apply plugin: 'maven'
+def isAndroidLibrary = isAndroidLibrary(project)
+def artifactId = getArtifactId(project)
+
+task sourcesJar(type: Jar) {
+    archivesBaseName = artifactId
+    if (!isAndroidLibrary) {
+        from sourceSets.main.java.srcDirs
+    } else {
+        from android.sourceSets.main.java.srcDirs
+    }
+    classifier = 'sources'
+}
+if (isAndroidLibrary) {
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') { //我们只需 release 的 javadoc
+            task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+                source = variant.javaCompile.source
+                if (!javadocSource().isEmpty())
+                    source javadocSource()
+                classpath = files(variant.javaCompile.classpath.files)
+                exclude '**/BuildConfig.java'
+                exclude '**/R.java'
+            }
+            task("javadoc${variant.name.capitalize()}Jar", type: Jar, dependsOn: "generate${variant.name.capitalize()}Javadoc") {
+                classifier = 'javadoc'
+                from tasks.getByName("generate${variant.name.capitalize()}Javadoc").destinationDir
+            }
+            artifacts {
+                archives tasks.getByName("javadoc${variant.name.capitalize()}Jar")
+                archives sourcesJar
+            }
+        }
+    }
+} else {
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        from javadoc.destinationDir
+        classifier = 'javadoc'
+    }
+
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
+    }
+}
+
+tasks.withType(Javadoc) {
+    options {
+        encoding 'UTF-8'
+        charSet 'UTF-8'
+        links "http://docs.oracle.com/javase/7/docs/api"
+        if (isAndroidLibrary) {
+            linksOffline "https://developer.android.com/reference", "${android.sdkDirectory}/docs/reference"
+            bootClasspath project.file(android.getBootClasspath().join(File.pathSeparator))
+        }
+    }
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('-protected')
+    options.addStringOption('-splitindex')
+}
+
+def javadocSource() {
+    if (project.hasProperty('javadocSource')) {
+        println "javadocSource=${project.javadocSource}"
+        return project.javadocSource
+    }
+    return Collections.emptyList()
+}
+//def excludeJavadoc() {
+//    if (project.hasProperty('javadocExclude')) {
+//        println "javadocExclude=${project.javadocExclude}"
+//        return project.javadocExclude
+//    }
+//    return Collections.emptyList()
+//}
+//
+//def getPackageName(variant) {
+//    def classpath = variant.applicationId
+//    if (variant.buildType.applicationIdSuffix) {
+//        classpath -= "${variant.buildType.applicationIdSuffix}"
+//    }
+//    return classpath
+//}
+//def packageName = getPackageName(variant)
+//println "packageName=${getPackageName(variant)}"
+//
+//def excludes = []
+//def projectPath = projectDir.absolutePath.replace(File.separator, '')
+//def packageNameNonSep = packageName.replace('.', '')
+//source.each { File file ->
+//    def absolutePath = file.absolutePath.replace(File.separator, '')
+//    def innerPath = absolutePath.replaceAll(projectPath, "")
+//    if (innerPath.contains('R.java') && !innerPath.contains(packageNameNonSep)) {
+//        println "${file.absolutePath}"
+//        excludes += file.absolutePath
+//    }
+//}

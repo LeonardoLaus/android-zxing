@@ -1,0 +1,77 @@
+ext.config = [:]
+
+def config = [:]
+
+def git = 'https://github.com/zxing'
+def desc = 'zxing scan qrcode'
+
+def versions = [:]
+versions.group = 'com.google.zxing'
+versions.version = '3.3.3'
+versions.desc = desc
+versions.siteUrl = "${git}/zxing"
+versions.gitUrl = "${versions.siteUrl}.git"
+versions.issueTrackerUrl = "${versions.siteUrl}/issues"
+versions.githubRepo = 'bintray/gradle-bintray-plugin'
+config.versions = versions
+
+def license = [:]
+license.name = 'The Apache Software License, Version 2.0'
+license.url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+config.license = license
+
+def developer = [:]
+//developer.id = 'zxing'
+//developer.name = 'zxing'
+//developer.email = 'zxing'
+config.developer = developer
+
+def bintray = [:]
+bintray.user = getLocalProperties().getProperty('bintray.user')
+bintray.apikey = getLocalProperties().getProperty('bintray.apikey')
+config.bintray = bintray
+
+def maven = [:]
+def nexus = 'http://192.168.39.102:8081/nexus'
+def nexusContent = "${nexus}/content"
+maven.userName = getLocalProperties().getProperty('maven.userName')
+maven.password = getLocalProperties().getProperty('maven.password')
+maven.nexusReleasesUrl = "${nexusContent}/repositories/releases"
+maven.nexusSnapshotsUrl = "${nexusContent}/repositories/snapshots"
+maven.localRepos = uri('E:/liuhao/Android/repos')
+maven.nexusPublicUrl = "${nexusContent}/groups/public"
+config.maven = maven
+
+ext.config = config
+
+def getLocalProperties() {
+    Properties properties = new Properties()
+    def file = project.rootProject.file('local.properties')
+    if (file.exists()) {
+        properties.load(file.newDataInputStream())
+    }
+    return properties
+}
+
+def addRepos(RepositoryHandler handler) {
+    handler.google()
+    handler.jcenter()
+    handler.mavenCentral()
+    handler.maven { url config.maven.nexusPublicUrl }
+    handler.maven { url config.maven.localRepos }
+}
+
+def getArtifactId(Project project) {
+    def selfConfig = project.hasProperty('artifactId')
+    def artifactId = selfConfig ? project.artifactId : project.name
+    println "project artifactId now is ${artifactId}. Use ext {artifactId = xxx} to customizing."
+    return artifactId
+}
+
+def isAndroidLibrary(Project project) {
+    return project.plugins.hasPlugin('com.android.library')
+}
+
+ext.addRepos = this.&addRepos
+ext.getArtifactId = this.&getArtifactId
+ext.isAndroidLibrary = this.&isAndroidLibrary

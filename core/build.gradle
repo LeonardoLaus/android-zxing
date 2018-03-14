@@ -1,0 +1,10 @@
+apply plugin: 'java-library'
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
+group = config.versions.group
+version = config.versions.version
+apply from: '../packaging.gradle'
+apply from: '../maven.gradle'
+apply from: '../bintray.gradle'

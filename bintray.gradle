@@ -1,0 +1,71 @@
+apply plugin: 'com.jfrog.bintray'
+def isAndroidLibrary = isAndroidLibrary(project)
+if (isAndroidLibrary) {
+    apply plugin: 'com.github.dcendents.android-maven'
+}
+def artifactId = getArtifactId(project)
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            packaging isAndroidLibrary ? 'aar' : 'jar'
+            description config.versions.desc
+            name artifactId
+            url config.versions.siteUrl
+
+            licenses {
+                license {
+                    name config.license.name
+                    url config.license.url
+                }
+            }
+
+            developers {
+                if (config.developer) {
+                    developer {
+                        id config.developer.id
+                        name config.developer.name
+                        email config.developer.email
+                    }
+                }
+            }
+            scm {
+                connection config.versions.gitUrl
+                developerConnection config.versions.gitUrl
+                url config.versions.siteUrl
+            }
+        }
+    }
+}
+bintray {
+    user = config.bintray.user
+    key = config.bintray.apikey
+
+    configurations = ['archives']
+
+    override = true //[Default: false] Whether to override version artifacts already published
+
+    pkg {
+        repo = 'Maven'
+        name = artifactId
+        description = config.versions.desc
+        websiteUrl = config.versions.siteUrl
+        vcsUrl = config.versions.gitUrl
+        issueTrackerUrl = config.versions.issueTrackerUrl
+        licenses = ["Apache-2.0"]
+        publicDownloadNumbers = true
+        githubRepo = config.versions.githubRepo //Optional Github repository
+        githubReleaseNotesFile = 'README.md' //Optional Github readme file
+
+        dryRun = false //[Default: false] Whether to run this as dry-run, without deploying
+        publish = true //[Default: false] Whether version should be auto published after an upload
+
+        version {
+            name = project.version ?: config.versions.version
+            desc = "release ${project.version ?: config.versions.version}"
+            released = new Date()
+            vcsTag = project.version ?: config.versions.version
+        }
+    }
+}
+
+println("project.name=${project.name}")

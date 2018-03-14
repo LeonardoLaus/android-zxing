@@ -1,0 +1,65 @@
+def artifactId = getArtifactId(project)
+def isAndroidLibrary = isAndroidLibrary(project)
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+uploadArchives {
+    // gradlew -PSNAPSHOTS xxx:uploadArchives
+    if (project.hasProperty('SNAPSHOTS') && !project.version.endsWith('SNAPSHOT')) {
+        project.version = "${project.version}-SNAPSHOT"
+        println "snapshots version=${project.version}"
+    }
+    repositories {
+        mavenDeployer {
+            //为Pom文件做数字签名
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            pom.version = project.version
+            pom.groupId = project.group
+            pom.artifactId = artifactId
+            pom.project {
+                description config.versions.desc
+                packaging isAndroidLibrary ? 'aar' : 'jar'
+                licenses {
+                    license {
+                        name config.license.name
+                        url config.license.url
+                    }
+                }
+                developers {
+                    if (config.developer) {
+                        developer {
+                            id config.developer.id
+                            name config.developer.name
+                            email config.developer.email
+                        }
+                    }
+                }
+            }
+
+            // localRepos
+            if (project.hasProperty('LOCAL_REPOS')) {
+                repository(url: config.maven.localRepos)
+            } else {
+                def userName = project.hasProperty('USERNAME') ? project.USERNAME : config.maven.userName
+                def password = project.hasProperty('PASSWORD') ? project.PASSWORD : config.maven.password
+//                assert userName != null
+//                assert password != null
+                // releases
+                repository(url: config.maven.nexusReleasesUrl) {
+                    authentication(userName: userName, password: password)
+                }
+                // snapshot
+                snapshotRepository(url: config.maven.nexusSnapshotsUrl) {
+                    authentication(userName: userName, password: password)
+                }
+            }
+        }
+    }
+}
+//为所有的jar包做数字签名
+//gpg签名需要签名文件
+signing {
+    required { !project.version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
