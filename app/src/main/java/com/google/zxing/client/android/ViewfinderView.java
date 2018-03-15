@@ -16,7 +16,6 @@
 
 package com.google.zxing.client.android;
 
-import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
@@ -87,25 +86,30 @@ public final class ViewfinderView extends View {
         this.cameraManager = cameraManager;
     }
 
+    private long mStartTime;
+
     @SuppressLint("DrawAllocation")
     @Override
     public void onDraw(Canvas canvas) {
         if (cameraManager == null) {
+            Log.w(TAG, "not ready yet, early draw before done configuring");
             return; // not ready yet, early draw before done configuring
         }
         Rect frame = cameraManager.getFramingRect();
         Rect previewFrame = cameraManager.getFramingRectInPreview();
         if (frame == null || previewFrame == null) {
+            Log.w(TAG, "not ready yet, frame not available");
             return;
         }
-//        if (mAnimator == null) {
-//            layoutLaser();
-//        }
+        if (mStartTime == 0) {
+            mStartTime = System.currentTimeMillis();
+        }
+        Log.i(TAG, "draw, use " + (System.currentTimeMillis()-mStartTime));
+        mStartTime = System.currentTimeMillis();
         // Draw the exterior (i.e. outside the framing rect) darkened
         drawMask(canvas, frame);
         // Draw Border rect
-        mBorderPaint.setStrokeWidth(1);
-        canvas.drawRect(frame.left, frame.top, frame.right, frame.bottom, mBorderPaint);
+        drawBorder(canvas, frame);
         // Draw Corner
         drawCorner(canvas, frame);
 
@@ -119,7 +123,6 @@ public final class ViewfinderView extends View {
             paint.setAlpha(SCANNER_ALPHA[scannerAlpha]);
             scannerAlpha = (scannerAlpha + 1) % SCANNER_ALPHA.length;
             float middle = frame.height() / 2 + frame.top;
-//            float middle = (int) (mLaserHeight + frame.top);
             canvas.drawRect(frame.left + 2, middle - 1, frame.right - 1, middle + 2, paint);
 
             float scaleX = frame.width() / (float) previewFrame.width();
@@ -181,6 +184,17 @@ public final class ViewfinderView extends View {
         canvas.drawRect(0, rect.top, rect.left, rect.bottom + 1, paint);
         canvas.drawRect(rect.right + 1, rect.top, width, rect.bottom + 1, paint);
         canvas.drawRect(0, rect.bottom + 1, width, height, paint);
+    }
+
+    /**
+     * draw frame
+     *
+     * @param canvas
+     * @param frame
+     */
+    private void drawBorder(Canvas canvas, Rect frame) {
+        mBorderPaint.setStrokeWidth(1);
+        canvas.drawRect(frame.left, frame.top, frame.right, frame.bottom, mBorderPaint);
     }
 
     /**
@@ -247,35 +261,5 @@ public final class ViewfinderView extends View {
 
     public static float dp2px(Context context, float dpVal) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal, context.getResources().getDisplayMetrics());
-    }
-
-    private float mLaserHeight;
-    private ValueAnimator mAnimator;
-    private void layoutLaser() {
-        if (cameraManager == null) {
-            Log.w(TAG, "not ready yet, early draw before done configuring");
-            return;
-        }
-        Rect frame = cameraManager.getFramingRect();
-        if (frame == null) {
-            Log.w(TAG, "frame rect Empty");
-            return;
-        }
-        if (mAnimator != null) {
-            mAnimator.cancel();
-        }
-        Log.i(TAG, "start");
-        mAnimator = ValueAnimator.ofFloat(0, frame.height())
-                .setDuration(1500);
-        mAnimator.setRepeatMode(ValueAnimator.RESTART);
-        mAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                mLaserHeight = (float) animation.getAnimatedValue();
-                Log.e(TAG, "height=" + mLaserHeight);
-            }
-        });
-        mAnimator.start();
     }
 }
