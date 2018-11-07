@@ -49,6 +49,11 @@ public final class CameraManager {
 
     private final Context context;
     private final CameraConfigurationManager configManager;
+    /**
+     * Preview frames are delivered here, which we pass on to the registered handler. Make sure to
+     * clear the handler so it will only receive one message.
+     */
+    private final PreviewCallback previewCallback;
     private OpenCamera camera;
     private AutoFocusManager autoFocusManager;
     private Rect framingRect;
@@ -58,16 +63,26 @@ public final class CameraManager {
     private int requestedCameraId = OpenCameraInterface.NO_REQUESTED_CAMERA;
     private int requestedFramingRectWidth;
     private int requestedFramingRectHeight;
-    /**
-     * Preview frames are delivered here, which we pass on to the registered handler. Make sure to
-     * clear the handler so it will only receive one message.
-     */
-    private final PreviewCallback previewCallback;
+    private boolean mWholeScene;
 
     public CameraManager(Context context) {
         this.context = context;
         this.configManager = new CameraConfigurationManager(context);
         previewCallback = new PreviewCallback(configManager);
+    }
+
+    private static int findDesiredDimensionInRange(int resolution, int hardMin, int hardMax) {
+//        int dim = 5 * resolution / 8; // Target 5/8 of each dimension
+//        int dim = 3 * resolution / 4;
+        /*device compat*/
+        int dim = resolution;
+        if (dim < hardMin) {
+            return hardMin;
+        }
+        if (dim > hardMax) {
+            return hardMax;
+        }
+        return dim;
     }
 
     /**
@@ -225,26 +240,19 @@ public final class CameraManager {
             int width = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
             int height = findDesiredDimensionInRange(screenResolution.y, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
 
-            width = height = Math.min(width, height);
+//            width = height = Math.min(width, height);
+            /*device compat*/
+            width = Math.max(width, height)/* * 3 / 4*/;
+            height = Math.min(width, height) / 2;
 
             int leftOffset = (screenResolution.x - width) / 2;
-            int topOffset = (screenResolution.y - height) / 2;
+            /*device compat*/
+//            int topOffset = (screenResolution.y - height) / 2;
+            int topOffset = (screenResolution.y - height);
             framingRect = new Rect(leftOffset, topOffset, leftOffset + width, topOffset + height);
             Log.d(TAG, "Calculated framing rect: " + framingRect);
         }
         return framingRect;
-    }
-
-    private static int findDesiredDimensionInRange(int resolution, int hardMin, int hardMax) {
-//        int dim = 5 * resolution / 8; // Target 5/8 of each dimension
-        int dim = 3 * resolution / 4;
-        if (dim < hardMin) {
-            return hardMin;
-        }
-        if (dim > hardMax) {
-            return hardMax;
-        }
-        return dim;
     }
 
     /**
@@ -270,11 +278,11 @@ public final class CameraManager {
             final float widthRatio;
             final float heightRatio;
             if (screenResolution.x > screenResolution.y) {
-                widthRatio = cameraResolution.x / (float)screenResolution.x;
-                heightRatio = cameraResolution.y /(float)screenResolution.y;
+                widthRatio = cameraResolution.x / (float) screenResolution.x;
+                heightRatio = cameraResolution.y / (float) screenResolution.y;
             } else {
-                widthRatio = cameraResolution.y / (float)screenResolution.x;
-                heightRatio = cameraResolution.x /(float)screenResolution.y;
+                widthRatio = cameraResolution.y / (float) screenResolution.x;
+                heightRatio = cameraResolution.x / (float) screenResolution.y;
             }
             rect.left = (int) (rect.left * widthRatio);
             rect.right = (int) (rect.right * widthRatio);
@@ -285,7 +293,6 @@ public final class CameraManager {
         }
         return framingRectInPreview;
     }
-
 
     /**
      * Allows third party apps to specify the camera ID, rather than determine
@@ -339,8 +346,16 @@ public final class CameraManager {
             return null;
         }
         // Go ahead and assume it's YUV rather than die.
-        return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top,
-                rect.width(), rect.height(), false);
+        if (this.mWholeScene) {
+            return new PlanarYUVLuminanceSource(data, width, height, 0, 0, width, height, false);
+        } else {
+            return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top,
+                    rect.width(), rect.height(), false);
+        }
+    }
+
+    public void setWholeScene(boolean wholeScene) {
+        this.mWholeScene = wholeScene;
     }
 
 }

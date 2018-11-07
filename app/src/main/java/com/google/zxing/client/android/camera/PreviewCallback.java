@@ -35,6 +35,15 @@ final class PreviewCallback implements Camera.PreviewCallback {
         this.configManager = configManager;
     }
 
+    //TODO: rotateYUV
+    private static byte[] rotateYUV(byte[] src, int width, int height) {
+        byte[] dst = new byte[src.length];
+        //Y
+        System.arraycopy(src, 0, dst, 0, src.length);
+        //UV
+        return dst;
+    }
+
     void setHandler(Handler previewHandler, int previewMessage) {
         this.previewHandler = previewHandler;
         this.previewMessage = previewMessage;
@@ -67,13 +76,5 @@ final class PreviewCallback implements Camera.PreviewCallback {
         } else {
             Log.d(TAG, "Got preview callback, but no handler or resolution available");
         }
-    }
-    //TODO: rotateYUV
-    private static byte[] rotateYUV(byte[] src, int width, int height) {
-        byte[] dst = new byte[src.length];
-        //Y
-        System.arraycopy(src, 0, dst, 0, src.length);
-        //UV
-        return dst;
     }
 }

@@ -7,7 +7,7 @@ def desc = 'zxing scan qrcode'
 
 def versions = [:]
 versions.group = 'com.google.zxing'
-versions.version = '3.3.3'
+versions.version = '3.3.4'
 versions.desc = desc
 versions.siteUrl = "${git}/zxing"
 versions.gitUrl = "${versions.siteUrl}.git"
@@ -21,9 +21,9 @@ license.url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
 config.license = license
 
 def developer = [:]
-//developer.id = 'zxing'
-//developer.name = 'zxing'
-//developer.email = 'zxing'
+developer.id = 'zxing'
+developer.name = 'zxing'
+developer.email = 'zxing'
 config.developer = developer
 
 def bintray = [:]
@@ -32,7 +32,8 @@ bintray.apikey = getLocalProperties().getProperty('bintray.apikey')
 config.bintray = bintray
 
 def maven = [:]
-def nexus = 'http://192.168.39.102:8081/nexus'
+//def nexus = 'http://192.168.39.102:8081/nexus'
+def nexus = 'http://common.homelabs.cn:8081/nexus'
 def nexusContent = "${nexus}/content"
 maven.userName = getLocalProperties().getProperty('maven.userName')
 maven.password = getLocalProperties().getProperty('maven.password')

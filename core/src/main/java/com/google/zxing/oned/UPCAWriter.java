@@ -31,25 +31,25 @@ import java.util.Map;
  */
 public final class UPCAWriter implements Writer {
 
-  private final EAN13Writer subWriter = new EAN13Writer();
+    private final EAN13Writer subWriter = new EAN13Writer();
 
-  @Override
-  public BitMatrix encode(String contents, BarcodeFormat format, int width, int height)
-      throws WriterException {
-    return encode(contents, format, width, height, null);
-  }
-
-  @Override
-  public BitMatrix encode(String contents,
-                          BarcodeFormat format,
-                          int width,
-                          int height,
-                          Map<EncodeHintType,?> hints) throws WriterException {
-    if (format != BarcodeFormat.UPC_A) {
-      throw new IllegalArgumentException("Can only encode UPC-A, but got " + format);
+    @Override
+    public BitMatrix encode(String contents, BarcodeFormat format, int width, int height)
+            throws WriterException {
+        return encode(contents, format, width, height, null);
     }
-    // Transform a UPC-A code into the equivalent EAN-13 code and write it that way
-    return subWriter.encode('0' + contents, BarcodeFormat.EAN_13, width, height, hints);
-  }
+
+    @Override
+    public BitMatrix encode(String contents,
+                            BarcodeFormat format,
+                            int width,
+                            int height,
+                            Map<EncodeHintType, ?> hints) throws WriterException {
+        if (format != BarcodeFormat.UPC_A) {
+            throw new IllegalArgumentException("Can only encode UPC-A, but got " + format);
+        }
+        // Transform a UPC-A code into the equivalent EAN-13 code and write it that way
+        return subWriter.encode('0' + contents, BarcodeFormat.EAN_13, width, height, hints);
+    }
 
 }

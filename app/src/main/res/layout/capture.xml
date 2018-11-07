@@ -55,8 +55,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/half_padding"
                     android:adjustViewBounds="true"
-                    android:maxHeight="160dip"
                     android:maxWidth="160dip"
+                    android:maxHeight="160dip"
                     android:scaleType="centerInside"
                     tools:ignore="ContentDescription" />
 

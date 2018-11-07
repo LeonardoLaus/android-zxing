@@ -15,10 +15,12 @@ if (isAndroidLibrary) {
     android.libraryVariants.all { variant ->
         if (variant.name == 'release') { //我们只需 release 的 javadoc
             task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+                doFirst {
+                    classpath = files(variant.javaCompile.classpath.files)
+                }
                 source = variant.javaCompile.source
                 if (!javadocSource().isEmpty())
                     source javadocSource()
-                classpath = files(variant.javaCompile.classpath.files)
                 exclude '**/BuildConfig.java'
                 exclude '**/R.java'
             }

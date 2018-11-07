@@ -23,44 +23,44 @@ package com.google.zxing.client.android.book;
  */
 final class SearchBookContentsResult {
 
-  private static String query = null;
+    private static String query = null;
 
-  private final String pageId;
-  private final String pageNumber;
-  private final String snippet;
-  private final boolean validSnippet;
+    private final String pageId;
+    private final String pageNumber;
+    private final String snippet;
+    private final boolean validSnippet;
 
     SearchBookContentsResult(String pageId,
                              String pageNumber,
                              String snippet,
                              boolean validSnippet) {
-    this.pageId = pageId;
-    this.pageNumber = pageNumber;
-    this.snippet = snippet;
-    this.validSnippet = validSnippet;
-  }
+        this.pageId = pageId;
+        this.pageNumber = pageNumber;
+        this.snippet = snippet;
+        this.validSnippet = validSnippet;
+    }
 
-  public static void setQuery(String query) {
-    SearchBookContentsResult.query = query;
-  }
+    public static String getQuery() {
+        return query;
+    }
 
-  public String getPageId() {
-    return pageId;
-  }
+    public static void setQuery(String query) {
+        SearchBookContentsResult.query = query;
+    }
 
-  public String getPageNumber() {
-    return pageNumber;
-  }
+    public String getPageId() {
+        return pageId;
+    }
 
-  public String getSnippet() {
-    return snippet;
-  }
+    public String getPageNumber() {
+        return pageNumber;
+    }
 
-  public boolean getValidSnippet() {
-    return validSnippet;
-  }
+    public String getSnippet() {
+        return snippet;
+    }
 
-  public static String getQuery() {
-    return query;
-  }
+    public boolean getValidSnippet() {
+        return validSnippet;
+    }
 }

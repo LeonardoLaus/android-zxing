@@ -16,22 +16,6 @@
 
 package com.google.zxing.client.android;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.Result;
-import com.google.zxing.ResultMetadataType;
-import com.google.zxing.ResultPoint;
-import com.google.zxing.client.android.camera.CameraManager;
-import com.google.zxing.client.android.clipboard.ClipboardInterface;
-import com.google.zxing.client.android.history.HistoryActivity;
-import com.google.zxing.client.android.history.HistoryItem;
-import com.google.zxing.client.android.history.HistoryManager;
-import com.google.zxing.client.android.result.ResultButtonListener;
-import com.google.zxing.client.android.result.ResultHandler;
-import com.google.zxing.client.android.result.ResultHandlerFactory;
-import com.google.zxing.client.android.result.supplement.SupplementalInfoRetriever;
-import com.google.zxing.client.android.share.ShareActivity;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -47,7 +31,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -61,9 +44,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.Result;
+import com.google.zxing.ResultMetadataType;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.client.android.camera.CameraManager;
+import com.google.zxing.client.android.clipboard.ClipboardInterface;
+import com.google.zxing.client.android.history.HistoryActivity;
+import com.google.zxing.client.android.history.HistoryItem;
+import com.google.zxing.client.android.history.HistoryManager;
+import com.google.zxing.client.android.result.ResultButtonListener;
+import com.google.zxing.client.android.result.ResultHandler;
+import com.google.zxing.client.android.result.ResultHandlerFactory;
+import com.google.zxing.client.android.result.supplement.SupplementalInfoRetriever;
+import com.google.zxing.client.android.share.ShareActivity;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -116,6 +118,28 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private BeepManager beepManager;
     private AmbientLightManager ambientLightManager;
 
+    private static boolean isZXingURL(String dataString) {
+        if (dataString == null) {
+            return false;
+        }
+        for (String url : ZXING_URLS) {
+            if (dataString.startsWith(url)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void drawLine(Canvas canvas, Paint paint, ResultPoint a, ResultPoint b, float scaleFactor) {
+        if (a != null && b != null) {
+            canvas.drawLine(scaleFactor * a.getX(),
+                    scaleFactor * a.getY(),
+                    scaleFactor * b.getX(),
+                    scaleFactor * b.getY(),
+                    paint);
+        }
+    }
+
     ViewfinderView getViewfinderView() {
         return viewfinderView;
     }
@@ -142,6 +166,28 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         ambientLightManager = new AmbientLightManager(this);
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        selfConfig();
+    }
+
+    private void selfConfig() {
+        Switch switchView = findViewById(R.id.flash_switch);
+        switchView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (cameraManager != null) {
+                    cameraManager.setTorch(isChecked);
+                }
+            }
+        });
+        ToggleButton toggleButton = findViewById(R.id.btn_toggle);
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (cameraManager != null) {
+                    cameraManager.setWholeScene(isChecked);
+                }
+            }
+        });
     }
 
     @Override
@@ -158,11 +204,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         // off screen.
         cameraManager = new CameraManager(getApplication());
 
-        viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
+        viewfinderView = findViewById(R.id.viewfinder_view);
         viewfinderView.setCameraManager(cameraManager);
 
         resultView = findViewById(R.id.result_view);
-        statusView = (TextView) findViewById(R.id.status_view);
+        statusView = findViewById(R.id.status_view);
 
         handler = null;
         lastResult = null;
@@ -253,7 +299,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         }
 
-        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
+        SurfaceView surfaceView = findViewById(R.id.preview_view);
         SurfaceHolder surfaceHolder = surfaceView.getHolder();
         if (hasSurface) {
             // The activity was paused but not stopped, so the surface still exists. Therefore
@@ -286,18 +332,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
-    private static boolean isZXingURL(String dataString) {
-        if (dataString == null) {
-            return false;
-        }
-        for (String url : ZXING_URLS) {
-            if (dataString.startsWith(url)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     protected void onPause() {
         if (handler != null) {
@@ -310,7 +344,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         cameraManager.closeDriver();
         //historyManager = null; // Keep for onActivityResult
         if (!hasSurface) {
-            SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
+            SurfaceView surfaceView = findViewById(R.id.preview_view);
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             surfaceHolder.removeCallback(this);
         }
@@ -515,16 +549,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
-    private static void drawLine(Canvas canvas, Paint paint, ResultPoint a, ResultPoint b, float scaleFactor) {
-        if (a != null && b != null) {
-            canvas.drawLine(scaleFactor * a.getX(),
-                    scaleFactor * a.getY(),
-                    scaleFactor * b.getX(),
-                    scaleFactor * b.getY(),
-                    paint);
-        }
-    }
-
     // Put up our own UI for how to handle the decoded contents.
     private void handleDecodeInternally(Result rawResult, ResultHandler resultHandler, Bitmap barcode) {
 
@@ -541,7 +565,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         viewfinderView.setVisibility(View.GONE);
         resultView.setVisibility(View.VISIBLE);
 
-        ImageView barcodeImageView = (ImageView) findViewById(R.id.barcode_image_view);
+        ImageView barcodeImageView = findViewById(R.id.barcode_image_view);
         if (barcode == null) {
             barcodeImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(),
                     R.drawable.launcher_icon));
@@ -549,18 +573,18 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             barcodeImageView.setImageBitmap(barcode);
         }
 
-        TextView formatTextView = (TextView) findViewById(R.id.format_text_view);
+        TextView formatTextView = findViewById(R.id.format_text_view);
         formatTextView.setText(rawResult.getBarcodeFormat().toString());
 
-        TextView typeTextView = (TextView) findViewById(R.id.type_text_view);
+        TextView typeTextView = findViewById(R.id.type_text_view);
         typeTextView.setText(resultHandler.getType().toString());
 
         DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-        TextView timeTextView = (TextView) findViewById(R.id.time_text_view);
+        TextView timeTextView = findViewById(R.id.time_text_view);
         timeTextView.setText(formatter.format(rawResult.getTimestamp()));
 
 
-        TextView metaTextView = (TextView) findViewById(R.id.meta_text_view);
+        TextView metaTextView = findViewById(R.id.meta_text_view);
         View metaTextViewLabel = findViewById(R.id.meta_text_view_label);
         metaTextView.setVisibility(View.GONE);
         metaTextViewLabel.setVisibility(View.GONE);
@@ -581,12 +605,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         CharSequence displayContents = resultHandler.getDisplayContents();
-        TextView contentsTextView = (TextView) findViewById(R.id.contents_text_view);
+        TextView contentsTextView = findViewById(R.id.contents_text_view);
         contentsTextView.setText(displayContents);
         int scaledSize = Math.max(22, 32 - displayContents.length() / 4);
         contentsTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
 
-        TextView supplementTextView = (TextView) findViewById(R.id.contents_supplement_text_view);
+        TextView supplementTextView = findViewById(R.id.contents_supplement_text_view);
         supplementTextView.setText("");
         supplementTextView.setOnClickListener(null);
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean(
@@ -598,7 +622,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         int buttonCount = resultHandler.getButtonCount();
-        ViewGroup buttonView = (ViewGroup) findViewById(R.id.result_button_view);
+        ViewGroup buttonView = findViewById(R.id.result_button_view);
         buttonView.requestFocus();
         for (int x = 0; x < ResultHandler.MAX_BUTTON_COUNT; x++) {
             TextView button = (TextView) buttonView.getChildAt(x);

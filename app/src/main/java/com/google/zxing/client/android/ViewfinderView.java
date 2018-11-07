@@ -50,18 +50,18 @@ public final class ViewfinderView extends View {
     private static final int CURRENT_POINT_OPACITY = 0xA0;
     private static final int MAX_RESULT_POINTS = 20;
     private static final int POINT_SIZE = 6;
-
-    private CameraManager cameraManager;
     private final Paint paint;
     private final Paint mBorderPaint;
-    private Bitmap resultBitmap;
     private final int maskColor;
     private final int resultColor;
     private final int laserColor;
     private final int resultPointColor;
+    private CameraManager cameraManager;
+    private Bitmap resultBitmap;
     private int scannerAlpha;
     private List<ResultPoint> possibleResultPoints;
     private List<ResultPoint> lastPossibleResultPoints;
+    private long mStartTime;
 
     // This constructor is used when the class is built from an XML resource.
     public ViewfinderView(Context context, AttributeSet attrs) {
@@ -82,11 +82,13 @@ public final class ViewfinderView extends View {
         lastPossibleResultPoints = null;
     }
 
+    public static float dp2px(Context context, float dpVal) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal, context.getResources().getDisplayMetrics());
+    }
+
     public void setCameraManager(CameraManager cameraManager) {
         this.cameraManager = cameraManager;
     }
-
-    private long mStartTime;
 
     @SuppressLint("DrawAllocation")
     @Override
@@ -101,11 +103,11 @@ public final class ViewfinderView extends View {
             Log.w(TAG, "not ready yet, frame not available");
             return;
         }
-        if (mStartTime == 0) {
-            mStartTime = System.currentTimeMillis();
-        }
-        Log.i(TAG, "draw, use " + (System.currentTimeMillis()-mStartTime));
-        mStartTime = System.currentTimeMillis();
+//        if (mStartTime == 0) {
+//            mStartTime = System.currentTimeMillis();
+//        }
+//        Log.i(TAG, "draw, use " + (System.currentTimeMillis() - mStartTime));
+//        mStartTime = System.currentTimeMillis();
         // Draw the exterior (i.e. outside the framing rect) darkened
         drawMask(canvas, frame);
         // Draw Border rect
@@ -257,9 +259,5 @@ public final class ViewfinderView extends View {
                 points.subList(0, size - MAX_RESULT_POINTS / 2).clear();
             }
         }
-    }
-
-    public static float dp2px(Context context, float dpVal) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal, context.getResources().getDisplayMetrics());
     }
 }
