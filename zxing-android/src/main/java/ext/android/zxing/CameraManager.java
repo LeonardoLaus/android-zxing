@@ -11,7 +11,7 @@ import java.util.List;
 
 import ext.android.zxing.utils.CameraUtils;
 
-public class CameraManager {
+final class CameraManager {
 
     private static final String TAG = "CameraManager";
 
@@ -25,7 +25,7 @@ public class CameraManager {
     private SurfaceTexture surfaceTexture;
     private boolean isPreviewing;
 
-    public CameraManager(Context context) {
+    CameraManager(Context context) {
         this.mContext = context.getApplicationContext();
         this.mCameraInfo = new Camera.CameraInfo();
         this.mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
