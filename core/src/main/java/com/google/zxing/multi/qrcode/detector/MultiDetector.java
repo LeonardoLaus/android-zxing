@@ -64,4 +64,10 @@ public final class MultiDetector extends Detector {
             }
         }
         if (result.isEmpty()) {
-            return EMP
+            return EMPTY_DETECTOR_RESULTS;
+        } else {
+            return result.toArray(EMPTY_DETECTOR_RESULTS);
+        }
+    }
+
+}

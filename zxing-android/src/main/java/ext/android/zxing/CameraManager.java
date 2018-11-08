@@ -2,6 +2,7 @@ package ext.android.zxing;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.util.Log;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 import ext.android.zxing.utils.CameraUtils;
+import ext.android.zxing.utils.Utils;
 
 final class CameraManager {
 
@@ -32,6 +34,9 @@ final class CameraManager {
     }
 
     public void start(SurfaceTexture surfaceTexture) throws IOException {
+        if (isOpened()) {
+            return;
+        }
         this.surfaceTexture = surfaceTexture;
         open();
         startPreview();
@@ -58,6 +63,36 @@ final class CameraManager {
                 mAutoFocusManager = new AutoFocusManager(mCamera);
                 mAutoFocusManager.start();
             }
+        }
+    }
+
+    public void requestPreviewFrame(Camera.PreviewCallback previewCallback) {
+        if (mCamera != null && isPreviewing) {
+            mCamera.setOneShotPreviewCallback(previewCallback);
+        }
+    }
+
+    public Point getPreviewResolution() {
+        if (mCamera == null) {
+            return null;
+        }
+        Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
+        return new Point(previewSize.width, previewSize.height);
+    }
+
+    public Point getPreviewSizeOnScreen() {
+        if (mCamera == null) {
+            return null;
+        }
+        Point screenResolution = Utils.getScreenResolution(mContext);
+        boolean isScreenPortrait = screenResolution.x < screenResolution.y;
+
+        Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
+        boolean isPreviewPortrait = previewSize.width < previewSize.height;
+        if (isScreenPortrait == isPreviewPortrait) {
+            return new Point(previewSize.width, previewSize.height);
+        } else {
+            return new Point(previewSize.height, previewSize.width);
         }
     }
 

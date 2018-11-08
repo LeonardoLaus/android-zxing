@@ -7,7 +7,6 @@ import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -22,18 +21,15 @@ public final class CameraUtils {
     private static final double[] RATIOS = new double[]{1.3333, 1.5, 1.6667, 1.7778};
     private static final double ASPECT_TOLERANCE = 0.001;
 
-    @NonNull
-    public static <T> T getSystemService(Context context, @NonNull String serviceName) {
-        return (T) context.getSystemService(serviceName);
+    private CameraUtils() {
+        throw new AssertionError("no instance.");
     }
+
 
     public static double findFullscreenRatio(@NonNull Context context,
                                              @NonNull List<Camera.Size> choiceSizes) {
         double find = 4d / 3;
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        Point point = new Point();
-        display.getRealSize(point);
+        Point point = Utils.getRealSize(context);
 
         double fullscreen;
         if (point.x > point.y) {
@@ -57,6 +53,7 @@ public final class CameraUtils {
         Log.d(TAG, "findFullscreenRatio(" + choiceSizes + ") return " + find);
         return find;
     }
+
 
     private static boolean toleranceRatio(double target, double candidate) {
         boolean tolerance = true;
@@ -87,10 +84,7 @@ public final class CameraUtils {
         // wrong size of preview surface. When we change the preview size, the
         // new overlay will be created before the old one closed, which causes
         // an exception. For now, just get the screen size.
-        WindowManager windowManager = getSystemService(context, Context.WINDOW_SERVICE);
-        Display display = windowManager.getDefaultDisplay();
-        Point point = new Point();
-        display.getSize(point);
+        Point point = Utils.getScreenResolution(context);
         int targetHeight = Math.min(point.x, point.y);
         int targetWidth = Math.max(point.x, point.y);
         if (findMinalRatio) {
@@ -193,7 +187,7 @@ public final class CameraUtils {
     }
 
     private static int getWindowRotation(Context context) {
-        WindowManager wm = getSystemService(context, Context.WINDOW_SERVICE);
+        WindowManager wm = Utils.getSystemService(context, Context.WINDOW_SERVICE);
         int rotation = wm.getDefaultDisplay().getRotation();
         switch (rotation) {
             case Surface.ROTATION_0:

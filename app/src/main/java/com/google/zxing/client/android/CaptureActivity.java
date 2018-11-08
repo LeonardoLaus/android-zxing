@@ -170,24 +170,24 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     private void selfConfig() {
-        Switch switchView = findViewById(R.id.flash_switch);
-        switchView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (cameraManager != null) {
-                    cameraManager.setTorch(isChecked);
-                }
-            }
-        });
-        ToggleButton toggleButton = findViewById(R.id.btn_toggle);
-        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (cameraManager != null) {
-                    cameraManager.setWholeScene(isChecked);
-                }
-            }
-        });
+//        Switch switchView = findViewById(R.id.flash_switch);
+//        switchView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (cameraManager != null) {
+//                    cameraManager.setTorch(isChecked);
+//                }
+//            }
+//        });
+//        ToggleButton toggleButton = findViewById(R.id.btn_toggle);
+//        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (cameraManager != null) {
+//                    cameraManager.setWholeScene(isChecked);
+//                }
+//            }
+//        });
     }
 
     @Override

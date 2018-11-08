@@ -1,1 +1,28 @@
-<manifest package="ext.android.zxing" />
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ext.android.zxing">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+
+    <uses-feature android:name="android.hardware.camera.any" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.screen.landscape" />
+
+    <application>
+        <activity
+            android:name=".widget.QRCodeScanActivity"
+            android:clearTaskOnLaunch="true"
+            android:screenOrientation="user"
+            android:stateNotNeeded="true"
+            android:theme="@style/ZXing_Theme.Scanner"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+    </application>
+
+</manifest>

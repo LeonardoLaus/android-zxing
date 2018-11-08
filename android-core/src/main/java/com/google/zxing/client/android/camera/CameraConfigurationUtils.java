@@ -305,20 +305,20 @@ public final class CameraConfigurationUtils {
                 continue;
             }
 
-      boolean isCandidatePortrait = realWidth < realHeight;
-      int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
-      int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
-      double aspectRatio = maybeFlippedWidth / (double) maybeFlippedHeight;
-      double distortion = Math.abs(aspectRatio - screenAspectRatio);
-      if (distortion > MAX_ASPECT_DISTORTION) {
-        continue;
-      }
+            boolean isCandidatePortrait = realWidth < realHeight;
+            int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
+            int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
+            double aspectRatio = maybeFlippedWidth / (double) maybeFlippedHeight;
+            double distortion = Math.abs(aspectRatio - screenAspectRatio);
+            if (distortion > MAX_ASPECT_DISTORTION) {
+                continue;
+            }
 
-      if (maybeFlippedWidth == screenResolution.x && maybeFlippedHeight == screenResolution.y) {
-        Point exactPoint = new Point(realWidth, realHeight);
-        Log.i(TAG, "Found preview size exactly matching screen size: " + exactPoint);
-        return exactPoint;
-      }
+            if (maybeFlippedWidth == screenResolution.x && maybeFlippedHeight == screenResolution.y) {
+                Point exactPoint = new Point(realWidth, realHeight);
+                Log.i(TAG, "Found preview size exactly matching screen size: " + exactPoint);
+                return exactPoint;
+            }
 
             // Resolution is suitable; record the one with max resolution
             if (resolution > maxResolution) {
@@ -336,15 +336,15 @@ public final class CameraConfigurationUtils {
             return largestSize;
         }
 
-    // If there is nothing at all suitable, return current preview size
-    Camera.Size defaultPreview = parameters.getPreviewSize();
-    if (defaultPreview == null) {
-      throw new IllegalStateException("Parameters contained no preview size!");
+        // If there is nothing at all suitable, return current preview size
+        Camera.Size defaultPreview = parameters.getPreviewSize();
+        if (defaultPreview == null) {
+            throw new IllegalStateException("Parameters contained no preview size!");
+        }
+        Point defaultSize = new Point(defaultPreview.width, defaultPreview.height);
+        Log.i(TAG, "No suitable preview sizes, using default: " + defaultSize);
+        return defaultSize;
     }
-    Point defaultSize = new Point(defaultPreview.width, defaultPreview.height);
-    Log.i(TAG, "No suitable preview sizes, using default: " + defaultSize);
-    return defaultSize;
-  }
 
     private static String findSettableValue(String name,
                                             Collection<String> supportedValues,

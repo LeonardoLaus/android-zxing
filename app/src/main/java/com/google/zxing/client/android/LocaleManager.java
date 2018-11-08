@@ -42,17 +42,6 @@ public final class LocaleManager {
      * These should be kept in sync with our translations.
      */
     private static final Map<String, String> GOOGLE_COUNTRY_TLD;
-    /**
-     * Google Product Search for mobile is available in fewer countries than web search. See here:
-     * http://support.google.com/merchants/bin/answer.py?hl=en-GB&answer=160619
-     */
-    private static final Map<String, String> GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD;
-    /**
-     * Book search is offered everywhere that web search is available.
-     */
-    private static final Map<String, String> GOOGLE_BOOK_SEARCH_COUNTRY_TLD = GOOGLE_COUNTRY_TLD;
-    private static final Collection<String> TRANSLATED_HELP_ASSET_LANGUAGES =
-            Arrays.asList("de", "en", "es", "fa", "fr", "it", "ja", "ko", "nl", "pt", "ru", "uk", "zh-rCN", "zh");
 
     static {
         GOOGLE_COUNTRY_TLD = new HashMap<>();
@@ -91,6 +80,12 @@ public final class LocaleManager {
         GOOGLE_COUNTRY_TLD.put(Locale.US.getCountry(), "com");
     }
 
+    /**
+     * Google Product Search for mobile is available in fewer countries than web search. See here:
+     * http://support.google.com/merchants/bin/answer.py?hl=en-GB&answer=160619
+     */
+    private static final Map<String, String> GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD;
+
     static {
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD = new HashMap<>();
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put("AU", "com.au"); // AUSTRALIA
@@ -105,6 +100,14 @@ public final class LocaleManager {
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.UK.getCountry(), "co.uk");
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.US.getCountry(), "com");
     }
+
+    /**
+     * Book search is offered everywhere that web search is available.
+     */
+    private static final Map<String, String> GOOGLE_BOOK_SEARCH_COUNTRY_TLD = GOOGLE_COUNTRY_TLD;
+
+    private static final Collection<String> TRANSLATED_HELP_ASSET_LANGUAGES =
+            Arrays.asList("de", "en", "es", "fa", "fr", "it", "ja", "ko", "nl", "pt", "ru", "uk", "zh-rCN", "zh");
 
     private LocaleManager() {
     }

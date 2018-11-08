@@ -259,4 +259,41 @@ final class MultiFinderPatternFinder extends FinderPatternFinder {
                                 currentState = 3;
                             }
                         } else {
-    
+                            stateCount[++currentState]++;
+                        }
+                    } else { // Counting white pixels
+                        stateCount[currentState]++;
+                    }
+                }
+            } // for j=...
+
+            if (foundPatternCross(stateCount)) {
+                handlePossibleCenter(stateCount, i, maxJ);
+            }
+        } // for i=iSkip-1 ...
+        FinderPattern[][] patternInfo = selectMutipleBestPatterns();
+        List<FinderPatternInfo> result = new ArrayList<>();
+        for (FinderPattern[] pattern : patternInfo) {
+            ResultPoint.orderBestPatterns(pattern);
+            result.add(new FinderPatternInfo(pattern));
+        }
+
+        if (result.isEmpty()) {
+            return EMPTY_RESULT_ARRAY;
+        } else {
+            return result.toArray(EMPTY_RESULT_ARRAY);
+        }
+    }
+
+    /**
+     * A comparator that orders FinderPatterns by their estimated module size.
+     */
+    private static final class ModuleSizeComparator implements Comparator<FinderPattern>, Serializable {
+        @Override
+        public int compare(FinderPattern center1, FinderPattern center2) {
+            float value = center2.getEstimatedModuleSize() - center1.getEstimatedModuleSize();
+            return value < 0.0 ? -1 : value > 0.0 ? 1 : 0;
+        }
+    }
+
+}

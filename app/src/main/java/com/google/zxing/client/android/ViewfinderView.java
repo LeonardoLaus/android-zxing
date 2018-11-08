@@ -61,7 +61,6 @@ public final class ViewfinderView extends View {
     private int scannerAlpha;
     private List<ResultPoint> possibleResultPoints;
     private List<ResultPoint> lastPossibleResultPoints;
-    private long mStartTime;
 
     // This constructor is used when the class is built from an XML resource.
     public ViewfinderView(Context context, AttributeSet attrs) {
