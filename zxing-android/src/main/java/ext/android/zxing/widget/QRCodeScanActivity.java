@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.TextureView;
+import android.view.WindowManager;
 
 import com.google.zxing.Result;
 
@@ -21,6 +22,7 @@ public class QRCodeScanActivity extends AppCompatActivity implements TextureView
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.zxing_activity_qrcode_scan);
         textureView = findViewById(R.id.texture);
         viewfinderView = findViewById(R.id.view_finder);
