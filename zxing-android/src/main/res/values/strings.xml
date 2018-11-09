@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zxing_default_qrcode_scan">请将二维码/条码置于框内</string>
+    <string name="zxing_qrcode_scan_failure">找不到目标二维码/条码，请重试！</string>
+    <string name="zxing_knew_it">我知道了</string>
+</resources>

@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import ext.android.zxing.widget.QRCodeScanActivity;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @Override
@@ -24,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(this, QRCodeActivity.class));
                 break;
             case R.id.btn_qrcode_scan:
-                startActivity(new Intent(this, QRCodeScanActivity.class));
+                startActivity(new Intent(this, ScanActivity.class));
                 break;
         }
     }

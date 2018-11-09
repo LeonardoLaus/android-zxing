@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,9 +12,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ext.android.zxing.widget.ViewfinderView
-        android:id="@+id/view_finder"
+    <ext.android.zxing.widget.QRCodeScanner
+        android:id="@+id/scanner"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:button="@drawable/zxing_selector_torch" />
 
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/qrcode"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#fff"
+        android:scaleType="centerInside"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/menu_gallery"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
+            app:srcCompat="@drawable/zxing_vector_gallery"
+            tools:ignore="VectorDrawableCompat" />
+
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/menu_close"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
+            app:srcCompat="@drawable/zxing_vector_close"
+            tools:ignore="VectorDrawableCompat" />
+    </LinearLayout>
 </FrameLayout>

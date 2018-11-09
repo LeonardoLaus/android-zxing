@@ -17,8 +17,10 @@ import android.util.Log;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
+import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
@@ -37,8 +39,8 @@ public final class Decoder {
 
     private static final int MIN_FRAME_WIDTH = 240;
     private static final int MIN_FRAME_HEIGHT = 240;
-    private static final int MAX_FRAME_WIDTH = 1200; // = 5/8 * 1920
-    private static final int MAX_FRAME_HEIGHT = 675; // = 5/8 * 1080
+    private static final int MAX_FRAME_WIDTH = 960; // = 5/8 * 1920
+    private static final int MAX_FRAME_HEIGHT = 960; // = 5/8 * 1080
 
     private static final int MAX_RETRY_COUNT = 5;
 
@@ -49,7 +51,7 @@ public final class Decoder {
     private final CameraManager mCameraManager;
     private final MultiFormatReader mMultiFormatReader;
 
-    private boolean mWholeScene = true;
+    private boolean mWholeScene;
     private DecodeCallback mDecodeCallback;
 
     public Decoder(@NonNull Context context, DecodeCallback decodeCallback) {
@@ -115,12 +117,34 @@ public final class Decoder {
 
     public void stop() {
         mCameraManager.stop();
+    }
+
+    public void destroy() {
         mDecodeHandler.removeCallbacksAndMessages(null);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             mDecodeThread.quitSafely();
         } else {
             mDecodeThread.quit();
         }
+    }
+
+    public boolean isTorchOn() {
+        return mCameraManager.getTorchState();
+    }
+
+    public void setTorch(boolean on) {
+        mCameraManager.setTorch(on);
+    }
+
+    public void decodeWholeScene(boolean wholeScene) {
+        this.mWholeScene = wholeScene;
+    }
+
+    public void decodeBitmap(final Bitmap bitmap) {
+        if (bitmap == null) {
+            return;
+        }
+        mDecodeHandler.obtainMessage(DecodeHandler.MSG_DECODE_BITMAP, bitmap).sendToTarget();
     }
 
     private PlanarYUVLuminanceSource buildLuminanceSource(byte[] data, int width, int height) {
@@ -168,11 +192,10 @@ public final class Decoder {
         int w = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
         int h = findDesiredDimensionInRange(screenResolution.y, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
 
-        int width = Math.max(w, h) / 2;
-        int height = Math.min(w, h) / 2;
-        int leftOffset = (screenResolution.x - width) / 2;
-        int topOffset = (screenResolution.y - height) / 2;
-        return new Rect(leftOffset, topOffset, leftOffset + width, topOffset + height);
+        int length = (int) (Math.min(w, h) * 0.75f);
+        int leftOffset = (screenResolution.x - length) / 2;
+        int topOffset = (screenResolution.y - length) / 2;
+        return new Rect(leftOffset, topOffset, leftOffset + length, topOffset + length);
     }
 
     public interface DecodeCallback {
@@ -184,7 +207,8 @@ public final class Decoder {
     private class DecodeHandler extends Handler implements Camera.PreviewCallback {
 
         private static final int MSG_DECODE = 1;
-        private static final int MSG_FAILED = 2;
+        private static final int MSG_DECODE_BITMAP = 2;
+        private static final int MSG_FAILED = 3;
 
         private int retry;
 
@@ -198,6 +222,9 @@ public final class Decoder {
             switch (msg.what) {
                 case MSG_DECODE:
                     decode((byte[]) msg.obj, msg.arg1, msg.arg2);
+                    break;
+                case MSG_DECODE_BITMAP:
+                    decodeBitmap((Bitmap) msg.obj);
                     break;
                 case MSG_FAILED:
                     if (retry < MAX_RETRY_COUNT) {
@@ -220,22 +247,29 @@ public final class Decoder {
             Message.obtain(this, MSG_DECODE, previewResolution.x, previewResolution.y, bytes).sendToTarget();
         }
 
+        private void decodeBitmap(Bitmap bitmap) {
+            long start = System.currentTimeMillis();
+            RGBLuminanceSource source = buildRGBLuminanceSource(bitmap);
+            Result rawResult = decodeLuminanceSource(source);
+            if (rawResult != null) {
+                // Don't log the barcode contents for security.
+                long end = System.currentTimeMillis();
+                Log.d(TAG, "Found barcode in " + (end - start) + " ms");
+                final byte[] barcode = getBitmapByte(bitmap, 50);
+                notifyResult(rawResult, barcode, 1);
+                retry = 0;
+            } else {
+                Log.e(TAG, "Not Found barcode. Try Again!");
+                sendEmptyMessage(MSG_FAILED);
+            }
+        }
+
         private void decode(byte[] data, int width, int height) {
             byte[] realData = rotateIfNeed(data, width, height);
             long start = System.currentTimeMillis();
-            Result rawResult = null;
 
             PlanarYUVLuminanceSource source = buildLuminanceSource(realData, width, height);
-            if (source != null) {
-                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-                try {
-                    rawResult = mMultiFormatReader.decodeWithState(bitmap);
-                } catch (ReaderException re) {
-                    // continue
-                } finally {
-                    mMultiFormatReader.reset();
-                }
-            }
+            Result rawResult = decodeLuminanceSource(source);
             if (rawResult != null) {
                 // Don't log the barcode contents for security.
                 long end = System.currentTimeMillis();
@@ -249,6 +283,30 @@ public final class Decoder {
                 sendEmptyMessage(MSG_FAILED);
             }
         }
+
+    }
+
+    private Result decodeLuminanceSource(LuminanceSource source) {
+        Result rawResult = null;
+        if (source != null) {
+            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+            try {
+                rawResult = mMultiFormatReader.decodeWithState(bitmap);
+            } catch (ReaderException re) {
+                // continue
+            } finally {
+                mMultiFormatReader.reset();
+            }
+        }
+        return rawResult;
+    }
+
+    private RGBLuminanceSource buildRGBLuminanceSource(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixels = new int[width * height];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+        return new RGBLuminanceSource(width, height, pixels);
     }
 
     private byte[] createThumbnail(PlanarYUVLuminanceSource source) {
@@ -256,8 +314,12 @@ public final class Decoder {
         int width = source.getThumbnailWidth();
         int height = source.getThumbnailHeight();
         Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
+        return getBitmapByte(bitmap, 50);
+    }
+
+    private static byte[] getBitmapByte(Bitmap bitmap, int quality) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
         return out.toByteArray();
     }
 

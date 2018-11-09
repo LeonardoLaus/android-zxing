@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <attr name="maskColor" format="reference|color" tools:ignore="ResourceName" />
+    <attr name="boardColor" format="reference|color" tools:ignore="ResourceName" />
+    <attr name="cornerColor" format="reference|color" tools:ignore="ResourceName" />
+    <attr name="scannerColor" format="reference|color" tools:ignore="ResourceName" />
+    <attr name="scannerDuration" format="reference|integer" tools:ignore="ResourceName" />
+
+    <declare-styleable name="ViewfinderView" tools:ignore="ResourceName">
+        <attr name="maskColor" />
+        <attr name="boardColor" />
+        <attr name="cornerColor" />
+        <attr name="scannerColor" />
+        <attr name="scannerDuration" />
+        <attr name="android:textColor" />
+        <attr name="android:textSize" />
+        <attr name="android:text" />
+    </declare-styleable>
+    <declare-styleable name="QRCodeScanner" tools:ignore="ResourceName">
+        <attr name="maskColor" />
+        <attr name="boardColor" />
+        <attr name="cornerColor" />
+        <attr name="scannerColor" />
+        <attr name="scannerDuration" />
+        <attr name="android:textColor" />
+        <attr name="android:textSize" />
+        <attr name="android:text" />
+        <attr name="android:button" />
+    </declare-styleable>
+</resources>

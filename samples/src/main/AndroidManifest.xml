@@ -32,6 +32,13 @@
             </intent-filter>
         </activity>
         <activity android:name=".QRCodeActivity" />
+        <activity
+            android:name=".ScanActivity"
+            android:clearTaskOnLaunch="true"
+            android:screenOrientation="user"
+            android:stateNotNeeded="true"
+            android:theme="@style/Zxing_Theme.Scanner"
+            android:windowSoftInputMode="stateAlwaysHidden" />
     </application>
 
 </manifest>

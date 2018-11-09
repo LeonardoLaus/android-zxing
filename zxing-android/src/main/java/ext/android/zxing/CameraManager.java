@@ -203,7 +203,7 @@ final class CameraManager {
         mCamera.setParameters(parameters);
     }
 
-    private boolean getTorchState() {
+    public boolean getTorchState() {
         if (this.mCamera == null)
             return false;
         Camera.Parameters parameters = this.mCamera.getParameters();

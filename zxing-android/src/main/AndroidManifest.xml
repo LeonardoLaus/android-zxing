@@ -21,7 +21,7 @@
             android:clearTaskOnLaunch="true"
             android:screenOrientation="user"
             android:stateNotNeeded="true"
-            android:theme="@style/ZXing_Theme.Scanner"
+            android:theme="@style/Zxing_Theme.Scanner"
             android:windowSoftInputMode="stateAlwaysHidden" />
     </application>
 
