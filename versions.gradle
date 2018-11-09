@@ -33,7 +33,7 @@ config.bintray = bintray
 
 def maven = [:]
 //def nexus = 'http://192.168.39.102:8081/nexus'
-def nexus = 'http://common.homelabs.cn:8081/nexus'
+def nexus = 'http://common.homelabs.in:8081/nexus'
 def nexusContent = "${nexus}/content"
 maven.userName = getLocalProperties().getProperty('maven.userName')
 maven.password = getLocalProperties().getProperty('maven.password')
