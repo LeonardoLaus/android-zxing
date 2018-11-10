@@ -42,7 +42,7 @@ public final class Decoder {
     private static final int MAX_FRAME_WIDTH = 960; // = 5/8 * 1920
     private static final int MAX_FRAME_HEIGHT = 960; // = 5/8 * 1080
 
-    private static final int MAX_RETRY_COUNT = 5;
+    private static final int MAX_RETRY_COUNT = 10;
 
     private final Context mContext;
     private final HandlerThread mDecodeThread;
@@ -80,6 +80,37 @@ public final class Decoder {
         } else {
             return data;
         }
+    }
+
+    private static byte[] rotate90IfPortrait(byte[] data, int width, int height) {
+        return width < height ? rotateYUV420Degree90(data, width, height) : data;
+    }
+
+    private static byte[] rotateYUV420Degree90(byte[] data, int width, int height) {
+        long start = System.currentTimeMillis();
+        int yLuminanceLength = width * height;
+        int length = width * height * 3 / 2;
+        byte[] yuv = new byte[length];
+        // Rotate the Y luma
+        int i = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = height - 1; y >= 0; y--) {
+                yuv[i] = data[y * width + x];
+                i++;
+            }
+        }
+        // Rotate the U and V color components
+        i = length - 1;
+        for (int x = width - 1; x > 0; x = x - 2) {
+            for (int y = 0; y < height / 2; y++) {
+                yuv[i] = data[yLuminanceLength + (y * width) + x];
+                i--;
+                yuv[i] = data[yLuminanceLength + (y * width) + (x - 1)];
+                i--;
+            }
+        }
+        Log.e(TAG, "rotateYUV420Degree90 spend time=" + (System.currentTimeMillis() - start) + "ms");
+        return yuv;
     }
 
     private static int findDesiredDimensionInRange(int resolution, int hardMin, int hardMax) {
@@ -265,7 +296,8 @@ public final class Decoder {
         }
 
         private void decode(byte[] data, int width, int height) {
-            byte[] realData = rotateIfNeed(data, width, height);
+            //byte[] realData = rotateIfNeed(data, width, height);
+            byte[] realData = rotate90IfPortrait(data, width, height);
             long start = System.currentTimeMillis();
 
             PlanarYUVLuminanceSource source = buildLuminanceSource(realData, width, height);
