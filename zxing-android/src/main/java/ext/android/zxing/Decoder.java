@@ -124,6 +124,12 @@ public final class Decoder {
         return dim;
     }
 
+    private static byte[] getBitmapByte(Bitmap bitmap, int quality) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+        return out.toByteArray();
+    }
+
     private void initFormatReader() {
         Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
         Collection<BarcodeFormat> decodeFormats = new ArrayList<>();
@@ -229,6 +235,59 @@ public final class Decoder {
         return new Rect(leftOffset, topOffset, leftOffset + length, topOffset + length);
     }
 
+    private Result decodeLuminanceSource(LuminanceSource source) {
+        Result rawResult = null;
+        if (source != null) {
+            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+            try {
+                rawResult = mMultiFormatReader.decodeWithState(bitmap);
+            } catch (ReaderException re) {
+                // continue
+            } finally {
+                mMultiFormatReader.reset();
+            }
+        }
+        return rawResult;
+    }
+
+    private RGBLuminanceSource buildRGBLuminanceSource(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int[] pixels = new int[width * height];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+        return new RGBLuminanceSource(width, height, pixels);
+    }
+
+    private byte[] createThumbnail(PlanarYUVLuminanceSource source) {
+        int[] pixels = source.renderThumbnail();
+        int width = source.getThumbnailWidth();
+        int height = source.getThumbnailHeight();
+        Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
+        return getBitmapByte(bitmap, 50);
+    }
+
+    private void notifyResult(final Result result, final byte[] barcode, final float scaledFactor) {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mDecodeCallback != null) {
+                    mDecodeCallback.onSuccess(result, barcode, scaledFactor);
+                }
+            }
+        });
+    }
+
+    private void notifyFailure() {
+        mMainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mDecodeCallback != null) {
+                    mDecodeCallback.onFailure();
+                }
+            }
+        });
+    }
+
     public interface DecodeCallback {
         void onSuccess(Result rawResult, byte[] barcode, float scaledFactor);
 
@@ -316,64 +375,5 @@ public final class Decoder {
             }
         }
 
-    }
-
-    private Result decodeLuminanceSource(LuminanceSource source) {
-        Result rawResult = null;
-        if (source != null) {
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            try {
-                rawResult = mMultiFormatReader.decodeWithState(bitmap);
-            } catch (ReaderException re) {
-                // continue
-            } finally {
-                mMultiFormatReader.reset();
-            }
-        }
-        return rawResult;
-    }
-
-    private RGBLuminanceSource buildRGBLuminanceSource(Bitmap bitmap) {
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int[] pixels = new int[width * height];
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-        return new RGBLuminanceSource(width, height, pixels);
-    }
-
-    private byte[] createThumbnail(PlanarYUVLuminanceSource source) {
-        int[] pixels = source.renderThumbnail();
-        int width = source.getThumbnailWidth();
-        int height = source.getThumbnailHeight();
-        Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
-        return getBitmapByte(bitmap, 50);
-    }
-
-    private static byte[] getBitmapByte(Bitmap bitmap, int quality) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
-        return out.toByteArray();
-    }
-
-    private void notifyResult(final Result result, final byte[] barcode, final float scaledFactor) {
-        mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mDecodeCallback != null) {
-                    mDecodeCallback.onSuccess(result, barcode, scaledFactor);
-                }
-            }
-        });
-    }
-
-    private void notifyFailure() {
-        mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mDecodeCallback != null) {
-                    mDecodeCallback.onFailure();
-                }
-            }
-        });
     }
 }

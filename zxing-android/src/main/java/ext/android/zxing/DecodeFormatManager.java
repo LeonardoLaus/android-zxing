@@ -22,7 +22,6 @@ import com.google.zxing.BarcodeFormat;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 final class DecodeFormatManager {
@@ -33,7 +32,7 @@ final class DecodeFormatManager {
     static final Set<BarcodeFormat> DATA_MATRIX_FORMATS = EnumSet.of(BarcodeFormat.DATA_MATRIX);
     static final Set<BarcodeFormat> AZTEC_FORMATS = EnumSet.of(BarcodeFormat.AZTEC);
     static final Set<BarcodeFormat> PDF417_FORMATS = EnumSet.of(BarcodeFormat.PDF_417);
-//    private static final Pattern COMMA_PATTERN = Pattern.compile(",");
+    //    private static final Pattern COMMA_PATTERN = Pattern.compile(",");
     private static final Set<BarcodeFormat> ONE_D_FORMATS;
 //    private static final Map<String, Set<BarcodeFormat>> FORMATS_FOR_MODE;
 
