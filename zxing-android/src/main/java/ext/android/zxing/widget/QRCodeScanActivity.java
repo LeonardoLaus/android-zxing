@@ -1,10 +1,15 @@
 package ext.android.zxing.widget;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +17,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.zxing.Result;
 
@@ -24,10 +30,13 @@ public class QRCodeScanActivity extends AppCompatActivity implements TextureView
     public static final String MODE_NONE = "MODE_NONE";
     public static final String MODE_PIC = "MODE_PIC";
 
+    private static final int PERMISSION_REQUEST_CAMERA = 100;
+
     private static final String TAG = "QRCodeScanner";
     private TextureView textureView;
     private QRCodeScanner qrCodeScanner;
     private ImageView qrCodeView;
+    private SurfaceTexture surfaceTexture;
     private Dialog failureDialog;
     private Decoder decoder;
     private String mMode = MODE_NONE;
@@ -44,6 +53,15 @@ public class QRCodeScanActivity extends AppCompatActivity implements TextureView
         decoder = new Decoder(getApplicationContext(), this);
         initViews();
         updateViews();
+        if (!isPermissionPrepare()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+            }
+        }
+    }
+
+    private boolean isPermissionPrepare() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void initViews() {
@@ -77,11 +95,20 @@ public class QRCodeScanActivity extends AppCompatActivity implements TextureView
         }
     }
 
+    private void startDecoder() {
+        if (surfaceTexture != null) {
+            qrCodeScanner.setFrameRect(decoder.getFramingRect());
+            decoder.start(surfaceTexture);
+        }
+    }
+
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
         Log.i(TAG, "[onSurfaceTextureAvailable] init QRCode Decoder.");
-        qrCodeScanner.setFrameRect(decoder.getFramingRect());
-        decoder.start(surfaceTexture);
+        this.surfaceTexture = surfaceTexture;
+        if (isPermissionPrepare()) {
+            startDecoder();
+        }
     }
 
     @Override
@@ -96,12 +123,26 @@ public class QRCodeScanActivity extends AppCompatActivity implements TextureView
             decoder.stop();
         }
         qrCodeScanner.setFrameRect(null);
+        this.surfaceTexture = null;
         return false;
     }
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CAMERA) {
+            if (isPermissionPrepare()) {
+                startDecoder();
+            } else {
+                Toast.makeText(this, "权限不足，请开启照相机权限", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
     }
 
     @Override

@@ -28,11 +28,13 @@ public class QRCodeScanner extends FrameLayout {
         addView(viewfinderView, 0, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         torchView = new CheckBox(context, attrs, defStyleAttr);
         addView(torchView, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        torchView.setVisibility(GONE);
     }
 
     public void setFrameRect(Rect frame) {
         this.frameRect = frame;
         viewfinderView.setFrameRect(frame);
+        torchView.setVisibility(this.frameRect == null ? GONE : VISIBLE);
     }
 
     @Override

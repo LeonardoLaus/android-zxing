@@ -88,24 +88,26 @@ public final class Decoder {
 
     private static byte[] rotateYUV420Degree90(byte[] data, int width, int height) {
         long start = System.currentTimeMillis();
-        int yLuminanceLength = width * height;
-        int length = width * height * 3 / 2;
+        int dWidth = height;
+        int dHeight = width;
+        int yLuminanceLength = dWidth * dHeight;
+        int length = yLuminanceLength * 3 / 2;
         byte[] yuv = new byte[length];
         // Rotate the Y luma
         int i = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = height - 1; y >= 0; y--) {
-                yuv[i] = data[y * width + x];
+        for (int x = 0; x < dWidth; x++) {
+            for (int y = dHeight - 1; y >= 0; y--) {
+                yuv[i] = data[y * dWidth + x];
                 i++;
             }
         }
         // Rotate the U and V color components
         i = length - 1;
-        for (int x = width - 1; x > 0; x = x - 2) {
-            for (int y = 0; y < height / 2; y++) {
-                yuv[i] = data[yLuminanceLength + (y * width) + x];
+        for (int x = dWidth - 1; x > 0; x = x - 2) {
+            for (int y = 0; y < dHeight / 2; y++) {
+                yuv[i] = data[yLuminanceLength + (y * dWidth) + x];
                 i--;
-                yuv[i] = data[yLuminanceLength + (y * width) + (x - 1)];
+                yuv[i] = data[yLuminanceLength + (y * dWidth) + (x - 1)];
                 i--;
             }
         }
@@ -133,9 +135,9 @@ public final class Decoder {
     private void initFormatReader() {
         Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
         Collection<BarcodeFormat> decodeFormats = new ArrayList<>();
+        decodeFormats.addAll(DecodeFormatManager.QR_CODE_FORMATS);
         decodeFormats.addAll(DecodeFormatManager.PRODUCT_FORMATS);
         decodeFormats.addAll(DecodeFormatManager.INDUSTRIAL_FORMATS);
-        decodeFormats.addAll(DecodeFormatManager.QR_CODE_FORMATS);
         decodeFormats.addAll(DecodeFormatManager.DATA_MATRIX_FORMATS);
         decodeFormats.addAll(DecodeFormatManager.AZTEC_FORMATS);
         decodeFormats.addAll(DecodeFormatManager.PDF417_FORMATS);
@@ -355,8 +357,9 @@ public final class Decoder {
         }
 
         private void decode(byte[] data, int width, int height) {
-            //byte[] realData = rotateIfNeed(data, width, height);
+//            byte[] realData = rotateIfNeed(data, width, height);
             byte[] realData = rotate90IfPortrait(data, width, height);
+
             long start = System.currentTimeMillis();
 
             PlanarYUVLuminanceSource source = buildLuminanceSource(realData, width, height);
