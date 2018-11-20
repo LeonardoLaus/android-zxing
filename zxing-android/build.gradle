@@ -36,7 +36,7 @@ dependencies {
     implementation project(':core')
 }
 group = 'ext.android.zxing'
-version = '1.0.0'
+version = '1.0.2'
 apply from: '../packaging.gradle'
 apply from: '../maven.gradle'
 apply from: '../bintray.gradle'

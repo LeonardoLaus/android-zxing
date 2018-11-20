@@ -51,7 +51,7 @@ final class CameraManager {
         return mCamera != null;
     }
 
-    public void setTorch(boolean on) {
+    public synchronized void setTorch(boolean on) {
         if (mCamera != null && on != getTorchState()) {
             boolean hasAutoFocusManager = mAutoFocusManager != null;
             if (hasAutoFocusManager) {
@@ -66,13 +66,13 @@ final class CameraManager {
         }
     }
 
-    public void requestPreviewFrame(Camera.PreviewCallback previewCallback) {
+    public synchronized void requestPreviewFrame(Camera.PreviewCallback previewCallback) {
         if (mCamera != null && isPreviewing) {
             mCamera.setOneShotPreviewCallback(previewCallback);
         }
     }
 
-    public Point getPreviewResolution() {
+    public synchronized Point getPreviewResolution() {
         if (mCamera == null) {
             return null;
         }
@@ -80,7 +80,7 @@ final class CameraManager {
         return new Point(previewSize.width, previewSize.height);
     }
 
-    public Point getPreviewSizeOnScreen() {
+    public synchronized Point getPreviewSizeOnScreen() {
         if (mCamera == null) {
             return null;
         }
@@ -96,7 +96,7 @@ final class CameraManager {
         }
     }
 
-    private void open() throws IOException {
+    private synchronized void open() throws IOException {
         this.mCamera = Camera.open(this.mCameraId);
         Camera.Parameters parameters = this.mCamera.getParameters();
         setupCameraParameters(parameters);
@@ -106,14 +106,14 @@ final class CameraManager {
         this.mCamera.setPreviewTexture(surfaceTexture);
     }
 
-    private void close() {
+    private synchronized void close() {
         if (mCamera != null) {
             mCamera.release();
             mCamera = null;
         }
     }
 
-    private void startPreview() {
+    private synchronized void startPreview() {
         if (mCamera != null && !isPreviewing) {
             mCamera.startPreview();
             isPreviewing = true;
@@ -121,7 +121,7 @@ final class CameraManager {
         }
     }
 
-    private void stopPreview() {
+    private synchronized void stopPreview() {
         if (mAutoFocusManager != null) {
             mAutoFocusManager.stop();
             mAutoFocusManager = null;
@@ -203,7 +203,7 @@ final class CameraManager {
         mCamera.setParameters(parameters);
     }
 
-    public boolean getTorchState() {
+    public synchronized boolean getTorchState() {
         if (this.mCamera == null)
             return false;
         Camera.Parameters parameters = this.mCamera.getParameters();

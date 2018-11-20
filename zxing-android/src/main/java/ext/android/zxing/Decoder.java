@@ -156,6 +156,8 @@ public final class Decoder {
 
     public void stop() {
         mCameraManager.stop();
+        mDecodeHandler.removeMessages(DecodeHandler.MSG_DECODE);
+        mDecodeHandler.removeMessages(DecodeHandler.MSG_FAILED);
     }
 
     public void destroy() {
